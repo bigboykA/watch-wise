@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title["title"] }} - WatchWise</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid #e94560;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        header a { color: #e94560; text-decoration: none; font-size: 1.1rem; font-weight: 600; }
+        header a:hover { text-decoration: underline; }
+        header h1 { font-size: 1.8rem; color: #e94560; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+        .detail-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-card h2 { font-size: 2rem; margin-bottom: 1rem; line-height: 1.3; }
+
+        .meta-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1.5rem; }
+
+        .tag {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            padding: 0.3rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+
+        .tag.type-movie { border-color: #e94560; color: #e94560; }
+        .tag.type-tv { border-color: #58a6ff; color: #58a6ff; }
+        .tag.rating-tag { border-color: #f0883e; color: #f0883e; }
+        .tag.genre { border-color: #7ee787; color: #7ee787; }
+
+        .info-section { margin-bottom: 1.25rem; }
+        .info-section strong { color: #e6edf3; }
+        .info-section p { color: #8b949e; margin-top: 0.3rem; line-height: 1.6; }
+
+        .description {
+            margin-top: 1.5rem;
+            line-height: 1.8;
+            color: #8b949e;
+            font-size: 1.05rem;
+        }
+
+        .cast-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.4rem;
+        }
+
+        .cast-tag {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            padding: 0.25rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+
+        footer {
+            text-align: center; padding: 2rem; color: #6e7681;
+            border-top: 1px solid #30363d; margin-top: 3rem;
+        }
+
+        footer span { color: #e94560; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/">&larr; Back</a>
+        <h1>WatchWise</h1>
+    </header>
+
+    <div class="container">
+        <div class="detail-card">
+            <h2>{{ title["title"] }}</h2>
+
+            <div class="meta-row">
+                {% if title["type"] == 'Movie' %}
+                <span class="tag type-movie">Movie</span>
+                {% else %}
+                <span class="tag type-tv">TV Show</span>
+                {% endif %}
+                <span class="tag">{{ title["release_year"] }}</span>
+                {% if title["rating"] %}
+                <span class="tag rating-tag">{{ title["rating"] }}</span>
+                {% endif %}
+                {% if title["duration"] %}
+                <span class="tag">{{ title["duration"] }}</span>
+                {% endif %}
+            </div>
+
+            {% if genres %}
+            <div class="meta-row">
+                {% for g in genres %}
+                <span class="tag genre">{{ g["name"] }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if directors %}
+            <div class="info-section">
+                <strong>Director{{ 's' if directors|length > 1 }}:</strong>
+                <p>{{ directors | map(attribute='name') | list | join(', ') }}</p>
+            </div>
+            {% endif %}
+
+            {% if actors %}
+            <div class="info-section">
+                <strong>Cast:</strong>
+                <div class="cast-list">
+                    {% for a in actors %}
+                    <span class="cast-tag">{{ a["name"] }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if countries %}
+            <div class="info-section">
+                <strong>Countr{{ 'ies' if countries|length > 1 else 'y' }}:</strong>
+                <p>{{ countries | map(attribute='name') | list | join(', ') }}</p>
+            </div>
+            {% endif %}
+
+            {% if title["date_added"] %}
+            <div class="info-section">
+                <strong>Added to Netflix:</strong>
+                <p>{{ title["date_added"] }}</p>
+            </div>
+            {% endif %}
+
+            {% if title["description"] %}
+            <p class="description">{{ title["description"] }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer>
+        <p>WatchWise &mdash; Built by <span>Kofi</span> &amp; <span>Mutawakil</span> | CSC 310 Database Project 2026</p>
+    </footer>
+</body>
+</html>
