@@ -9,7 +9,7 @@ APP_USER = "guest"
 app.jinja_env.globals["APP_USER"] = APP_USER
 
 
-# ----------- DB connection (request-scoped via flask.g) -----------
+# DB connection (request-scoped via flask.g) 
 
 def get_db():
     if "db" not in g:
@@ -26,7 +26,7 @@ def close_db(_exc):
         db.close()
 
 
-# ----------- Small helpers -----------
+# Small helpers
 
 def field(name, default=""):
     """Read a form field, coerce to stripped string."""
@@ -69,7 +69,7 @@ def collection_owned(collection_id, user):
     ).fetchone() is not None
 
 
-# ----------- Schema for the CRUD-only tables we added on top of netflix.db -----------
+# Schema for the CRUD-only tables we added on top of netflix.db 
 
 def init_extra_tables():
     """Create reviews / favorites / collections tables on startup (idempotent)."""
@@ -108,7 +108,7 @@ def init_extra_tables():
         get_db().commit()
 
 
-# ----------- BROWSE -----------
+
 
 @app.route("/")
 def index():
@@ -228,7 +228,7 @@ def title_detail(show_id):
     )
 
 
-# ----------- REVIEWS (INSERT / UPDATE / DELETE) -----------
+#  REVIEWS (INSERT / UPDATE / DELETE) 
 
 @app.route("/title/<show_id>/review", methods=["POST"])
 def add_review(show_id):
@@ -285,7 +285,7 @@ def delete_review(review_id):
     return redirect(url_for("title_detail", show_id=row["show_id"]))
 
 
-# ----------- FAVORITES (INSERT / DELETE) -----------
+# FAVORITES (INSERT / DELETE) 
 
 @app.route("/title/<show_id>/favorite", methods=["POST"])
 def toggle_favorite(show_id):
@@ -319,7 +319,7 @@ def favorites():
     return render_template("favorites.html", titles=rows)
 
 
-# ----------- EDIT TITLE METADATA (UPDATE) -----------
+# EDIT TITLE METADATA (UPDATE) 
 
 @app.route("/title/<show_id>/edit", methods=["GET", "POST"])
 def edit_title(show_id):
@@ -355,7 +355,7 @@ def edit_title(show_id):
     return render_template("edit_title.html", title=title)
 
 
-# ----------- ADD A NEW TITLE (INSERT into titles + title_genres) -----------
+# ADD A NEW TITLE (INSERT into titles + title_genres) 
 
 def next_user_show_id():
     """Generate the next user-added show_id like 'u1', 'u2', ..."""
@@ -407,7 +407,7 @@ def add_title():
     return render_template("add_title.html", genres=genres)
 
 
-# ----------- DELETE A TITLE (DELETE titles + junction cleanup) -----------
+#DELETE A TITLE (DELETE titles + junction cleanup) 
 
 @app.route("/title/<show_id>/delete", methods=["POST"])
 def delete_title(show_id):
