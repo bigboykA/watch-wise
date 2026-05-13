@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ collection.name }} &mdash; WatchWise{% endblock %}
+{% block back_href %}/collections{% endblock %}
+{% block back_label %}&larr; All collections{% endblock %}
+
+{% block content %}
+    <div class="title-bar">
+        <h2>{{ collection.name }} ({{ items|length }})</h2>
+        <div class="action-buttons">
+            <form class="rename-form" method="POST"
+                  action="/collections/{{ collection.collection_id }}/rename">
+                <input type="text" name="name" placeholder="Rename to..."
+                       value="{{ collection.name }}" required>
+                <button type="submit" class="btn btn-sm btn-primary">Rename</button>
+            </form>
+            <form class="inline-form" method="POST"
+                  action="/collections/{{ collection.collection_id }}/delete"
+                  onsubmit="return confirm('Delete this collection?');">
+                <button type="submit" class="btn btn-sm btn-danger">Delete collection</button>
+            </form>
+        </div>
+    </div>
+
+    {% if items %}
+    <div class="movie-grid">
+        {% for t in items %}
+        <div class="movie-card">
+            <h3><a href="/title/{{ t.show_id }}">{{ t.title }}</a></h3>
+            <div class="movie-meta">
+                {% if t.type == 'Movie' %}<span class="tag type-movie">Movie</span>
+                {% else %}<span class="tag type-tv">TV Show</span>{% endif %}
+                <span class="tag">{{ t.release_year }}</span>
+                {% if t.rating %}<span class="tag">{{ t.rating }}</span>{% endif %}
+            </div>
+            {% if t.description %}<p class="description">{{ t.description }}</p>{% endif %}
+            <form method="POST"
+                  action="/collections/{{ collection.collection_id }}/remove/{{ t.show_id }}">
+                <button type="submit" class="btn btn-sm btn-danger">Remove from collection</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        <p class="lead">This collection is empty.</p>
+        <p><a href="/">Browse titles</a> and use the "Add to collection" buttons on a title page.</p>
+    </div>
+    {% endif %}
+{% endblock %}

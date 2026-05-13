@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ title["title"] }} &mdash; WatchWise{% endblock %}
+{% block back_href %}/title/{{ title['show_id'] }}{% endblock %}
+{% block back_label %}&larr; Back to title{% endblock %}
+{% block container_class %}form{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h2 class="page-heading">Edit Title</h2>
+        <form method="POST">
+            <label class="field-label">Title</label>
+            <input type="text" name="title" value="{{ title['title'] }}" required>
+
+            <div class="grid-2">
+                <div>
+                    <label class="field-label">Type</label>
+                    <select name="type">
+                        <option value="Movie" {% if title['type']=='Movie' %}selected{% endif %}>Movie</option>
+                        <option value="TV Show" {% if title['type']=='TV Show' %}selected{% endif %}>TV Show</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="field-label">Release Year</label>
+                    <input type="number" name="release_year" min="1900" max="2030"
+                           value="{{ title['release_year'] or '' }}">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label class="field-label">Content Rating</label>
+                    <input type="text" name="rating" placeholder="e.g. PG-13, TV-MA"
+                           value="{{ title['rating'] or '' }}">
+                </div>
+                <div>
+                    <label class="field-label">Duration</label>
+                    <input type="text" name="duration" placeholder="e.g. 120 min, 3 Seasons"
+                           value="{{ title['duration'] or '' }}">
+                </div>
+            </div>
+
+            <label class="field-label">Description</label>
+            <textarea name="description">{{ title['description'] or '' }}</textarea>
+
+            <div class="btn-row">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="/title/{{ title['show_id'] }}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}My Favorites &mdash; WatchWise{% endblock %}
+
+{% block content %}
+    <h2 class="page-heading">&#9829; My Favorites ({{ titles|length }})</h2>
+
+    {% if titles %}
+    <div class="movie-grid">
+        {% for t in titles %}
+        <div class="movie-card">
+            <h3><a href="/title/{{ t.show_id }}">{{ t.title }}</a></h3>
+            <div class="movie-meta">
+                {% if t.type == 'Movie' %}<span class="tag type-movie">Movie</span>
+                {% else %}<span class="tag type-tv">TV Show</span>{% endif %}
+                <span class="tag">{{ t.release_year }}</span>
+                {% if t.rating %}<span class="tag">{{ t.rating }}</span>{% endif %}
+            </div>
+            {% if t.description %}<p class="description">{{ t.description }}</p>{% endif %}
+            <form method="POST" action="/title/{{ t.show_id }}/favorite">
+                <button type="submit" class="btn btn-sm btn-danger">&#9829; Unfavorite</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        <p class="lead">No favorites yet.</p>
+        <p><a href="/">Browse titles</a> and click the heart to add some!</p>
+    </div>
+    {% endif %}
+{% endblock %}

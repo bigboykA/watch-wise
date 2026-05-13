@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Add Title &mdash; WatchWise{% endblock %}
+{% block back_label %}&larr; Home{% endblock %}
+{% block container_class %}form{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <h2 class="page-heading">Add a New Title</h2>
+        <form method="POST">
+            <label class="field-label">Title *</label>
+            <input type="text" name="title" required placeholder="e.g. Oppenheimer">
+
+            <div class="grid-2">
+                <div>
+                    <label class="field-label">Type</label>
+                    <select name="type">
+                        <option value="Movie">Movie</option>
+                        <option value="TV Show">TV Show</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="field-label">Release Year</label>
+                    <input type="number" name="release_year" min="1900" max="2030" placeholder="e.g. 2023">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label class="field-label">Content Rating</label>
+                    <input type="text" name="rating" placeholder="e.g. PG-13, TV-MA">
+                </div>
+                <div>
+                    <label class="field-label">Duration</label>
+                    <input type="text" name="duration" placeholder="e.g. 180 min, 1 Season">
+                </div>
+            </div>
+
+            <label class="field-label">Description</label>
+            <textarea name="description" placeholder="What's it about?"></textarea>
+
+            <label class="field-label">Genres (pick any)</label>
+            <div class="genre-grid">
+                {% for g in genres %}
+                <label><input type="checkbox" name="genres" value="{{ g }}"> {{ g }}</label>
+                {% endfor %}
+            </div>
+
+            <div class="btn-row">
+                <button type="submit" class="btn btn-primary">Add to Catalog</button>
+                <a href="/" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}WatchWise{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% block header %}
+    <header>
+        <a class="brand" href="{% block back_href %}/{% endblock %}">
+            {% block back_label %}&larr; Home{% endblock %}
+        </a>
+        <h1>WatchWise</h1>
+        <div class="nav-links">
+            <span class="user-badge">User: <strong>{{ current_user }}</strong></span>
+            <a href="/favorites">&#9829; Favorites</a>
+            <a href="/collections">Collections</a>
+            <a href="/add-title">+ Add Title</a>
+        </div>
+    </header>
+    {% endblock %}
+
+    <div class="container {% block container_class %}{% endblock %}">
+        {% with messages = get_flashed_messages() %}
+          {% for msg in messages %}<div class="flash">{{ msg }}</div>{% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p>WatchWise &mdash; Built by <span>Kofi</span> &amp; <span>Mutawakil</span> | CSC 310 Database Project 2026</p>
+    </footer>
+</body>
+</html>

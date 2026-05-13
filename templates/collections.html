@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}My Collections &mdash; WatchWise{% endblock %}
+{% block container_class %}narrow{% endblock %}
+
+{% block content %}
+    <h2 class="page-heading">My Collections</h2>
+
+    <div class="card">
+        <h3 class="text-muted mb-1">Create new collection</h3>
+        <form class="new-form" method="POST" action="/collections/new">
+            <input type="text" name="name"
+                   placeholder="e.g. Sci-Fi Night, Classics, Weekend Watchlist" required>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </form>
+    </div>
+
+    <div class="card">
+        {% if collections %}
+            {% for c in collections %}
+            <div class="collection-row">
+                <div>
+                    <a class="name" href="/collections/{{ c.collection_id }}">{{ c.name }}</a>
+                    <div class="collection-meta">
+                        {{ c.item_count }} title{{ 's' if c.item_count != 1 }}
+                        &middot; created {{ c.created_at }}
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <a class="btn btn-sm" href="/collections/{{ c.collection_id }}">Open</a>
+                    <form class="inline-form" method="POST"
+                          action="/collections/{{ c.collection_id }}/delete"
+                          onsubmit="return confirm('Delete collection {{ c.name }}?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="empty">No collections yet. Create one above!</p>
+        {% endif %}
+    </div>
+{% endblock %}
