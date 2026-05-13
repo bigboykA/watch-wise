@@ -14,10 +14,7 @@
         </a>
         <h1>WatchWise</h1>
         <div class="nav-links">
-            <span class="user-badge">User: <strong>{{ current_user }}</strong></span>
-            <a href="/favorites">&#9829; Favorites</a>
-            <a href="/collections">Collections</a>
-            <a href="/add-title">+ Add Title</a>
+            {% include 'inc/top_nav.html' %}
         </div>
     </header>
     {% endblock %}

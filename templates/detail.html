@@ -103,7 +103,7 @@
 
         <form method="POST" action="/title/{{ title['show_id'] }}/review" class="mb-1">
             <div class="form-row">
-                <input type="text" name="username" placeholder="Your username" value="{{ current_user }}" required>
+                <input type="text" name="username" placeholder="Your username" value="{{ APP_USER }}" required>
                 <input type="number" name="score" step="0.1" min="0" max="10" placeholder="Score 0-10" required>
             </div>
             <textarea name="review_text" placeholder="Write your review (optional)"></textarea>

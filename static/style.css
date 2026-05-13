@@ -72,17 +72,6 @@ header.hero .nav-links a {
 }
 header.hero .nav-links a:hover { border-color: #e94560; color: #e94560; }
 
-.user-badge {
-    font-size: 0.85rem;
-    color: #8b949e;
-    background: #0d1117;
-    border: 1px solid #30363d;
-    padding: 0.3rem 0.7rem;
-    border-radius: 20px;
-}
-header.hero .user-badge { background: rgba(13, 17, 23, 0.5); }
-.user-badge strong { color: #7ee787; }
-
 /* ---------- Layout ---------- */
 
 .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
@@ -144,13 +133,10 @@ header.hero .user-badge { background: rgba(13, 17, 23, 0.5); }
     letter-spacing: 0.5px;
 }
 
-.btn-row { display: flex; gap: 0.5rem; align-items: end; }
-
 /* ---------- Form inputs (universal) ---------- */
 
 input[type="text"],
 input[type="number"],
-input[type="email"],
 textarea,
 select {
     width: 100%;
@@ -236,7 +222,7 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: #e94560
 .btn-heart { border-color: #e94560; color: #e94560; }
 .btn-heart.active { background: #e94560; color: white; }
 
-.btn-row { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+.btn-row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-top: 1.5rem; }
 
 .inline-form { display: inline; }
 
@@ -348,7 +334,7 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: #e94560
 .review-text   { color: #8b949e; line-height: 1.5; margin-bottom: 0.5rem; }
 .review-actions { display: flex; gap: 0.5rem; align-items: flex-start; }
 .review-edit-form { margin-top: 0.5rem; }
-.review-edit-form summary { cursor: pointer; }
+.review-actions details summary { cursor: pointer; }
 
 /* ---------- Collections list rows ---------- */
 

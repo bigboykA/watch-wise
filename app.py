@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
 
 app = Flask(__name__)
 app.secret_key = "watchwise-csc310-demo-secret"
 DATABASE = "netflix.db"
+# Single-user app: favorites/collections DB rows use this label.
+APP_USER = "guest"
+app.jinja_env.globals["APP_USER"] = APP_USER
 
 
 def get_db():
@@ -11,6 +14,38 @@ def get_db():
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
+
+
+def parse_score_value(score_str):
+    """Return score in [0, 10] or None if invalid."""
+    try:
+        v = float((score_str or "").strip())
+        if not (0 <= v <= 10):
+            raise ValueError
+        return v
+    except ValueError:
+        return None
+
+
+def parse_optional_year(release_year):
+    """Return (year_int_or_None, error_message_or_None)."""
+    s = (release_year or "").strip()
+    if not s:
+        return None, None
+    try:
+        return int(s), None
+    except ValueError:
+        return None, "Release year must be a number."
+
+
+def collection_owned(conn, collection_id, user):
+    return (
+        conn.execute(
+            "SELECT 1 FROM collections WHERE collection_id = ? AND user_label = ?",
+            (collection_id, user),
+        ).fetchone()
+        is not None
+    )
 
 
 def init_extra_tables():
@@ -50,24 +85,6 @@ def init_extra_tables():
     """)
     conn.commit()
     conn.close()
-
-
-def current_user():
-    """Return the current fake-user label from the session (default: 'guest')."""
-    return session.get("user_label", "guest")
-
-
-@app.context_processor
-def inject_user():
-    return {"current_user": current_user()}
-
-
-@app.route("/set-user", methods=["POST"])
-def set_user():
-    name = (request.form.get("user_label") or "").strip()
-    if name:
-        session["user_label"] = name[:50]
-    return redirect(request.referrer or url_for("index"))
 
 
 @app.route("/")
@@ -151,7 +168,7 @@ def index():
 @app.route("/title/<show_id>")
 def title_detail(show_id):
     conn = get_db()
-    user = current_user()
+    user = APP_USER
 
     title = conn.execute(
         "SELECT * FROM titles WHERE show_id = ?", (show_id,)
@@ -231,15 +248,10 @@ def title_detail(show_id):
 
 @app.route("/title/<show_id>/review", methods=["POST"])
 def add_review(show_id):
-    username = (request.form.get("username") or current_user()).strip()[:50]
-    score = request.form.get("score", "").strip()
+    username = (request.form.get("username") or APP_USER).strip()[:50]
     review_text = (request.form.get("review_text") or "").strip()
-
-    try:
-        score_val = float(score)
-        if not (0 <= score_val <= 10):
-            raise ValueError
-    except ValueError:
+    score_val = parse_score_value(request.form.get("score", ""))
+    if score_val is None:
         flash("Score must be a number between 0 and 10.")
         return redirect(url_for("title_detail", show_id=show_id))
 
@@ -260,14 +272,9 @@ def add_review(show_id):
 
 @app.route("/review/<int:review_id>/edit", methods=["POST"])
 def edit_review(review_id):
-    score = request.form.get("score", "").strip()
     review_text = (request.form.get("review_text") or "").strip()
-
-    try:
-        score_val = float(score)
-        if not (0 <= score_val <= 10):
-            raise ValueError
-    except ValueError:
+    score_val = parse_score_value(request.form.get("score", ""))
+    if score_val is None:
         flash("Score must be a number between 0 and 10.")
         return redirect(request.referrer or url_for("index"))
 
@@ -309,7 +316,7 @@ def delete_review(review_id):
 
 @app.route("/title/<show_id>/favorite", methods=["POST"])
 def toggle_favorite(show_id):
-    user = current_user()
+    user = APP_USER
     conn = get_db()
     exists = conn.execute(
         "SELECT 1 FROM favorites WHERE user_label = ? AND show_id = ?",
@@ -334,7 +341,7 @@ def toggle_favorite(show_id):
 
 @app.route("/favorites")
 def favorites():
-    user = current_user()
+    user = APP_USER
     conn = get_db()
     rows = conn.execute("""
         SELECT t.show_id, t.title, t.type, t.release_year, t.rating, t.duration, t.description,
@@ -372,10 +379,9 @@ def edit_title(show_id):
             conn.close()
             return redirect(url_for("edit_title", show_id=show_id))
 
-        try:
-            year_val = int(release_year) if release_year else None
-        except ValueError:
-            flash("Release year must be a number.")
+        year_val, year_err = parse_optional_year(release_year)
+        if year_err:
+            flash(year_err)
             conn.close()
             return redirect(url_for("edit_title", show_id=show_id))
 
@@ -428,10 +434,9 @@ def add_title():
             conn.close()
             return redirect(url_for("add_title"))
 
-        try:
-            year_val = int(release_year) if release_year else None
-        except ValueError:
-            flash("Release year must be a number.")
+        year_val, year_err = parse_optional_year(release_year)
+        if year_err:
+            flash(year_err)
             conn.close()
             return redirect(url_for("add_title"))
 
@@ -470,16 +475,13 @@ def delete_title(show_id):
         flash("Title not found.")
         return redirect(url_for("index"))
 
-    # Manually cascade across junctions (these tables don't have ON DELETE CASCADE).
+    # Junction tables without ON DELETE CASCADE from titles.
     conn.execute("DELETE FROM title_actors    WHERE show_id = ?", (show_id,))
     conn.execute("DELETE FROM title_directors WHERE show_id = ?", (show_id,))
     conn.execute("DELETE FROM title_genres    WHERE show_id = ?", (show_id,))
     conn.execute("DELETE FROM title_countries WHERE show_id = ?", (show_id,))
-    # reviews / favorites / collection_items use ON DELETE CASCADE, but be explicit anyway.
-    conn.execute("DELETE FROM reviews          WHERE show_id = ?", (show_id,))
-    conn.execute("DELETE FROM favorites        WHERE show_id = ?", (show_id,))
-    conn.execute("DELETE FROM collection_items WHERE show_id = ?", (show_id,))
-    conn.execute("DELETE FROM titles           WHERE show_id = ?", (show_id,))
+    # reviews, favorites, collection_items reference titles with ON DELETE CASCADE.
+    conn.execute("DELETE FROM titles WHERE show_id = ?", (show_id,))
     conn.commit()
     conn.close()
     flash(f"Deleted '{title['title']}'.")
@@ -488,9 +490,9 @@ def delete_title(show_id):
 
 # ----------- CUSTOM COLLECTIONS (full CRUD) -----------
 
-@app.route("/collections", methods=["GET"])
+@app.route("/collections")
 def collections_list():
-    user = current_user()
+    user = APP_USER
     conn = get_db()
     rows = conn.execute("""
         SELECT c.collection_id, c.name, c.created_at,
@@ -507,7 +509,7 @@ def collections_list():
 
 @app.route("/collections/new", methods=["POST"])
 def create_collection():
-    user = current_user()
+    user = APP_USER
     name = (request.form.get("name") or "").strip()
     if not name:
         flash("Collection name is required.")
@@ -525,7 +527,7 @@ def create_collection():
 
 @app.route("/collections/<int:collection_id>")
 def collection_detail(collection_id):
-    user = current_user()
+    user = APP_USER
     conn = get_db()
     collection = conn.execute(
         "SELECT * FROM collections WHERE collection_id = ? AND user_label = ?",
@@ -549,7 +551,7 @@ def collection_detail(collection_id):
 
 @app.route("/collections/<int:collection_id>/rename", methods=["POST"])
 def rename_collection(collection_id):
-    user = current_user()
+    user = APP_USER
     new_name = (request.form.get("name") or "").strip()
     if not new_name:
         flash("New name is required.")
@@ -567,10 +569,8 @@ def rename_collection(collection_id):
 
 @app.route("/collections/<int:collection_id>/delete", methods=["POST"])
 def delete_collection(collection_id):
-    user = current_user()
+    user = APP_USER
     conn = get_db()
-    # ON DELETE CASCADE removes collection_items, but be explicit for clarity.
-    conn.execute("DELETE FROM collection_items WHERE collection_id = ?", (collection_id,))
     conn.execute(
         "DELETE FROM collections WHERE collection_id = ? AND user_label = ?",
         (collection_id, user),
@@ -583,13 +583,9 @@ def delete_collection(collection_id):
 
 @app.route("/collections/<int:collection_id>/add/<show_id>", methods=["POST"])
 def add_to_collection(collection_id, show_id):
-    user = current_user()
+    user = APP_USER
     conn = get_db()
-    owner = conn.execute(
-        "SELECT 1 FROM collections WHERE collection_id = ? AND user_label = ?",
-        (collection_id, user),
-    ).fetchone()
-    if owner is None:
+    if not collection_owned(conn, collection_id, user):
         conn.close()
         flash("Not your collection.")
         return redirect(request.referrer or url_for("collections_list"))
@@ -605,13 +601,9 @@ def add_to_collection(collection_id, show_id):
 
 @app.route("/collections/<int:collection_id>/remove/<show_id>", methods=["POST"])
 def remove_from_collection(collection_id, show_id):
-    user = current_user()
+    user = APP_USER
     conn = get_db()
-    owner = conn.execute(
-        "SELECT 1 FROM collections WHERE collection_id = ? AND user_label = ?",
-        (collection_id, user),
-    ).fetchone()
-    if owner is None:
+    if not collection_owned(conn, collection_id, user):
         conn.close()
         flash("Not your collection.")
         return redirect(request.referrer or url_for("collections_list"))
